@@ -47,5 +47,13 @@ poetry lock --no-update
 poetry shell
 ```
 
+## Experiment Results
 
+[Experiment Results Here](./EXPERIMENT_RESULTS.md)
 
+## Next Steps:
+- Repackage Approach 1 (BS4 recursive text extraction)
+
+Problem Statement:
+- A webscraper which extracts stock related searches from Yahoo Search Engine
+- Structure results, ready for sentiment analysis

@@ -16,6 +16,7 @@ spacy = "^3.7.4"
 bs4 = "^0.0.2"
 html2text = "^2024.2.26"
 lxml = "^5.2.1"
+selenium = "^4.20.0"
 
 [tool.poetry.dev-dependencies]
 black = "^23.9.1"     # accepts any latest version
