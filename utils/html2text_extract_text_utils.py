@@ -1,5 +1,6 @@
 import html2text
 
+
 def html2text_extract_text(input_html: str) -> str:
     """
     Approach 2: Use html2text
