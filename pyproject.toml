@@ -17,6 +17,10 @@ bs4 = "^0.0.2"
 html2text = "^2024.2.26"
 lxml = "^5.2.1"
 selenium = "^4.20.0"
+validators = "^0.28.1"
+python-dateutil = "^2.9.0.post0"
+types-beautifulsoup4 = "^4.12.0.20240504"
+types-requests = "^2.31.0.20240406"
 
 [tool.poetry.dev-dependencies]
 black = "^23.9.1"     # accepts any latest version
@@ -30,3 +34,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 check_untyped_defs = true
+exclude = ["venv"]
+
+[tool.ruff]
+ignore = ["E501"]

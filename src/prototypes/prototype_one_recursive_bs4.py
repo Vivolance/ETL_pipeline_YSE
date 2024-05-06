@@ -1,11 +1,11 @@
 import logging
 from typing import Any
 
-from utils.get_search_results import get_search_results
-from utils.logger_utils import setup_logger
-from utils.recursive_bs4_extract_text_utils import (
+from src.utils.get_search_results import get_search_results
+from src.utils.logger_utils import setup_logger
+from src.utils.recursive_bs4_extract_text_utils import (
     bs4_recursive_extract_text,
-    ExtractedText,
+    ExtractedTextGroup,
 )
 
 LOGGER: logging.Logger = logging.Logger(__name__)
@@ -43,14 +43,19 @@ if __name__ == "__main__":
         - performs better than en-core-web-lg, but slower
     """
     results: dict[str, Any] = get_search_results("tesla earning reports")
+    print(f"Results: {results}")
     # nlp: Language = spacy.load("en_core_web_lg")
     yahoo_html: str = results["result"]
     """
     Step 1: Convert HTML into Text + HTML
     - If we pass each segment into bs4_extract_text at a time, it might be better
+    - Having both text and HTML versions gives you flexibility in how you handle and manipulate 
+    the data. You can work with the text version for analysis or display purposes, while still 
+    having access to the original HTML for tasks like reformatting, re-parsing, or extracting 
+    additional information.
     """
-    raw_text: list[ExtractedText] = bs4_recursive_extract_text(yahoo_html)
+    raw_text: list[ExtractedTextGroup] = bs4_recursive_extract_text(yahoo_html)
 
     for single_result in raw_text:
-        print("=====")
-        print(single_result.text)
+        LOGGER.info("=====")
+        LOGGER.info(single_result)
