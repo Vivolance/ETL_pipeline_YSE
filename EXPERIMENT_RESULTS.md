@@ -9,7 +9,7 @@ Cons
 - Results from API is different from what we see on the browser (Yahoo returns different results for API call vs UI)
 
 ```commandline
-PYTHONPATH=. python prototypes/prototype_one_recursive_bs4.py
+PYTHONPATH=. python src/prototypes/prototype_one_recursive_bs4.py
 ```
 
 ### Lessons Learnt:

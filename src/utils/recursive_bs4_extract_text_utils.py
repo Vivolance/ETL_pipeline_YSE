@@ -1,94 +1,12 @@
-from dataclasses import dataclass, field
-from enum import Enum
+import logging
+from typing import Any
 
 from bs4 import BeautifulSoup, Tag
-import re
-
-DATE_PATTERN: re.Pattern = re.compile(
-    r"\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s\d{1,2},\s\d{4}\b"
-)
-LI_PATTERN: re.Pattern = re.compile(r"[0-9]+_li")
-URL_PATTERN: re.Pattern = re.compile(
-    r"\b(?:www\.)?[\w-]+\.(?:[\w-]+\.)?[a-zA-Z]{2,6}\b"
-)
-
-
-class TextClassification(str, Enum):
-    url = "url"
-    body = "body"
-    date = "date"
-
-
-@dataclass
-class ExtractedText:
-    parent_tags: list[str]
-    text: str
-
-    @property
-    def is_search_result(self) -> bool:
-        """
-        Assume only search results have "[0-9]+_li" in them
-        """
-        for tag in self.parent_tags:
-            if LI_PATTERN.match(tag):
-                return True
-        return False
-
-    @property
-    def identifier_tags(self) -> str:
-        """
-        Represents the identifier of the extractedpip3  text
-        Text of the same identifier tags are of the same search result
-
-        All tags before and including "[0-9]+_li" is part of the identifier tag
-        :return: E.G "html-body-div-div-div-div-div-div-div-div-ul-1_li"
-        """
-        identifier_tags: list[str] = []
-        for tag in self.parent_tags:
-            identifier_tags.append(tag)
-            if LI_PATTERN.match(tag):
-                break
-        return "-".join(identifier_tags)
-
-    @property
-    def is_date(self) -> bool:
-        return DATE_PATTERN.search(self.text) is not None
-
-    @property
-    def is_url(self) -> bool:
-        return URL_PATTERN.search(self.text) is not None or "› " in self.text
-
-    @property
-    def classification(self) -> TextClassification:
-        if self.is_date:
-            return TextClassification.date
-        elif self.is_url:
-            return TextClassification.url
-        else:
-            return TextClassification.body
-
-
-@dataclass
-class ExtractedTextGroup:
-    identifier: str
-    link: list[ExtractedText] = field(default_factory=list)
-    body: list[ExtractedText] = field(default_factory=list)
-    date: list[ExtractedText] = field(default_factory=list)
-
-    @property
-    def link_str(self) -> str:
-        return " ".join([current_link.text for current_link in self.link])
-
-    @property
-    def body_str(self) -> str:
-        return " ".join([current_link.text for current_link in self.body])
-
-    @property
-    def date_str(self) -> str:
-        return " ".join([current_link.text for current_link in self.date])
-
-    def __str__(self) -> str:
-        return f"Identifier: {self.identifier}\n\nDate: {self.date_str}\n\nLink: {self.link_str}\n\nBody: {self.body_str}\n\n"
+from src.models.extracted_text import ExtractedText
+from src.models.extracted_text_group import ExtractedTextGroup
+from src.models.text_classification_enum import TextClassification
+from src.utils.get_search_results import get_search_results
+from src.utils.logger_utils import setup_logger
 
 
 def bs4_recursive_extract_text(html_content: str) -> list[ExtractedTextGroup]:
@@ -173,3 +91,56 @@ def _bs4_recursive_extract_text(html_content: str) -> list[ExtractedText]:
         extracted_text.parent_tags = list(reversed(extracted_text.parent_tags))
 
     return extracted_texts
+
+
+LOGGER: logging.Logger = logging.Logger(__name__)
+setup_logger(LOGGER)
+
+if __name__ == "__main__":
+    """
+    Steps to implement a machine learning feature, or any feature for that matter
+
+    Step 1: Take the project and cut it down into multiple parts
+    Step 2: Isolate the most difficult part of the project
+    - The most difficult part here, is cleaning the HTML on behalf of the user
+    Step 3: Come up with possible approaches for the implementation
+
+    Approach 1: Use a HTML Parser, no ML. Brute force the HTMl and come up with a hard-coded HTMl parser
+    - This is not great; it breaks once yahoo or google changes it's HTML layout
+
+    Approach 2: Use a bazooka to kill the ant. Send the whole payload into ChatGPT3.5 and make it extract it
+    - This is still not great; ChatGPT3.5 API costs a sub-cent per call
+
+    Approach 3: Using Classical Machine Learning / Simpler Deep Learning
+    - We transform the data into features ourselves, the same features ChatGPT would have learnt by itself
+    - No choice, as using a more stupid model means we have to make the task easy for it right?
+
+    Features:
+    - text -> tokens (tokens are like sub-words, elephant -> ele phant, 2 tokens)
+    - convert tokens into vectors; these vectors represent the meaning behind the word
+
+    spacy has 3 models
+    - en-core-web-sm -> smallest model, Convolutional neural network small
+        - small model is light in RAM usage, and very fast
+    - en-core-web-lg -> larger model, Convolutional neural network
+        - recommended default, and it's a good balance between speed and quality
+    - en-core-web-trf -> one of the larger models, Transformer
+        - performs better than en-core-web-lg, but slower
+    """
+    results: dict[str, Any] = get_search_results("tesla earning reports")
+    print(f"Results: {results}")
+    # nlp: Language = spacy.load("en_core_web_lg")
+    yahoo_html: str = results["result"]
+    """
+    Step 1: Convert HTML into Text + HTML
+    - If we pass each segment into bs4_extract_text at a time, it might be better
+    - Having both text and HTML versions gives you flexibility in how you handle and manipulate 
+    the data. You can work with the text version for analysis or display purposes, while still 
+    having access to the original HTML for tasks like reformatting, re-parsing, or extracting 
+    additional information.
+    """
+    raw_text: list[ExtractedTextGroup] = bs4_recursive_extract_text(yahoo_html)
+
+    for single_result in raw_text:
+        LOGGER.info("=====")
+        LOGGER.info(single_result)
