@@ -1,59 +1,67 @@
-# Prototype Playground
+# ETL pipeline for yahoo_search_engine
 
-## Objective
-- Prototype solutions for extract search results from a raw yahoo search engine HTML
+## Brief
 
-## Understanding Spacy
+Now that yahoo_search_engine saves raw HTML search results in `yahoo_search_engine.search_results`
 
-Spacy is a machine learning package which allows us to easily load and use common NLP models
+We need a way to extract the search results in the HTML returned from yahoo, and arrange it neatly into structured data
 
-It provides 3 common models; there are more but let's focus on these 3 common ones
-- en_core_web_sm (uses convolutional neural network, smallest but fastest)
-- en_core_web_lg (good balance between speed and performance, convolutional neural network)
-- en_core_web_trf (uses transformers, slower but more performant than en_core_web_lg)
+This ETL pipeline does that efficiently, and runs at a specific time every 5 minutes.
 
-## We will use en_core_web_lg first for our experiment
+## Process
 
-Download the model; The model is a fancy MB / GB worth of vectors, which represents it's understanding of NLP.
+### Stage 1: Fetch raw yahoo search results
+- Queries for rows from yahoo_search_engine.search_results table after a specific date range
 
-This model is pre-trained.
+### Stage 2: Extract results from yahoo search results (HTML)
 
-These "vectors" have a common name; We call them weights
+### Stage 3: Batch insert into PSQL (yahoo_search_results.extracted_search_results)
+- We do a CSV copy if we have millions of rows; the CSV copy would be way faster than bulk inserts
+- But in this case, since we have very few users at the moment, with very few records
+- A bulk insert is sufficient
 
-```
-python -m spacy download en_core_web_lg
-```
+## Setup Database
 
-## Installing dependencies
+Please visit yahoo_search_engine and run
 
 ```commandline
-poetry install
+alembic upgrade head
 ```
 
-## Upgrade dependencies on poetry
+This creates 4 tables
+- `yahoo_search_engine.last_extracted_user_status` -> table responsible for storing the last time the ETL pipeline ran for a given user's search
+- `yahoo_search_engine.users` -> table responsible for storing users
+- `yahoo_search_engine.search_results` -> table responsible for storing raw results
+- `yahoo_search_engine.extracted_search_results` -> table responsible for storing extracted results from the ETL pipeline
 
-Edit `pyproject.toml` to have the new version under `tool.poetry.dependencies`
-
-Create a new file with
-- `--no-update` ensures we don't update other dependencies that didn't have a change in dependencies in `pyproject.toml`
-
-```commandline
-poetry lock --no-update
-```
-
-## Creating a venv
+## Creating the virtual environment and installing dependencies
 
 ```commandline
 poetry shell
 ```
 
-## Experiment Results
+```commandline
+poetry install
+```
 
-[Experiment Results Here](./EXPERIMENT_RESULTS.md)
+## Running the ETL pipeline
 
-## Next Steps:
-- Repackage Approach 1 (BS4 recursive text extraction)
+```commandline
+python src/etl_pipeline.py
+```
 
-Problem Statement:
-- A webscraper which extracts stock related searches from Yahoo Search Engine
-- Structure results, ready for sentiment analysis
+This runs the ETL pipeline, to ingest all raw documents in `yahoo_search_engine.search_results`
+- Runs for all users, which have been created after each user's last run in `yahoo_search_engine.last_extracted_user_status`
+- Processed data is saved in `yahoo_search_engine.extracted_search_results`
+
+## Scheduling the ETL script to run
+
+TODO: We use Jenkins as a scheduling server, to run the script every 5 minutes
+- To do this realtime, we can use kafka
+
+We will tackle this in another project
+
+## TODO:
+- [ ] Unit test extractor
+- [ ] Integration test DAO
+- [ ] Setup local jenkins scheduler server to run the script at a 5 minute schedule

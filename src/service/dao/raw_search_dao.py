@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Sequence
+from datetime import datetime
 
 import toml
 from retry import retry
@@ -70,6 +71,51 @@ class RawSearchResultDAO:
                     "created_at": result.created_at,
                 },
             )
+
+    @retry(
+        exceptions=SQLAlchemyError,
+        tries=5,
+        delay=0.01,
+        jitter=(-0.01, 0.01),
+        backoff=2,
+    )
+    async def fetch_searches_for_user(
+        self,
+        user_id: str,
+        last_run: datetime
+    ) -> list[SearchResults]:
+        """
+        Integration test this
+        """
+        async with self._engine.begin() as connection:
+            text_clause: TextClause = text(
+                "SELECT search_id, user_id, "
+                "search_term, result, created_at "
+                "FROM search_results "
+                "WHERE created_at >= :last_run "
+                "AND user_id = :user_id"
+            )
+            cursor: CursorResult = await connection.execute(
+                text_clause,
+                {
+                    "last_run": last_run,
+                    "user_id": user_id,
+                }
+            )
+            results: Sequence[Row] = cursor.fetchall()
+            results_row: list[SearchResults] = [
+                SearchResults.parse_obj(
+                    {
+                        "search_id": curr_row[0],
+                        "user_id": curr_row[1],
+                        "search_term": curr_row[2],
+                        "result": curr_row[3],
+                        "created_at": curr_row[4],
+                    }
+                )
+                for curr_row in results
+            ]
+        return results_row
 
     @retry(
         exceptions=SQLAlchemyError,

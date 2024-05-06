@@ -20,6 +20,8 @@ from src.utils.construct_connection_string import (
 class ExtractedSearchResultDAO:
     """
     Responsible for CRUD to yahoo_search_engine.extracted_search_results
+
+    CSV COPY a dataframe into postgres
     """
 
     def __init__(
@@ -73,6 +75,54 @@ class ExtractedSearchResultDAO:
                     "created_date": result.created_date,
                 },
             )
+
+    @retry(
+        exceptions=SQLAlchemyError,
+        tries=5,
+        delay=0.01,
+        jitter=(-0.01, 0.01),
+        backoff=2,
+    )
+    async def bulk_insert(self, results: list[ExtractedSearchResult]) -> None:
+        """
+        CSV copy into a temporary table
+        Then, insert from temporary table into yahoo_search_engine.extracted_search_results
+
+        TODO: Integration test this
+        - Retry unit test -> does it catch the SQLAlchemyError
+        """
+        async with self._engine.begin() as connection:
+            insert_clause: TextClause = text(
+                "INSERT into extracted_search_result("
+                "   id, "
+                "   user_id, "
+                "   url, "
+                "   date, "
+                "   body, "
+                "   created_date"
+                ") values ("
+                "   :id,"
+                "   :user_id, "
+                "   :url, "
+                "   :date, "
+                "   :body, "
+                "   :created_date "
+                ")"
+            )
+            insert_params = [
+                {
+                    "id": result.id,
+                    "user_id": result.user_id,
+                    "url": result.url,
+                    "date": result.date,
+                    "body": result.body,
+                    "created_date": result.created_date,
+                }
+                for result in results
+            ]
+
+            # use named-params here to prevent SQL-injection attacks
+            await connection.execute(insert_clause, insert_params)
 
     @retry(
         exceptions=SQLAlchemyError,
