@@ -5,3 +5,5 @@ cache/
 *.json
 *.idea
 .env
+__pycache__
+.DS_Store

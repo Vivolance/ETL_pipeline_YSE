@@ -1,6 +1,5 @@
 import asyncio
 from collections.abc import Sequence
-from datetime import datetime
 
 import toml
 from retry import retry
@@ -10,7 +9,7 @@ from typing import Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from src.models.search_results import SearchResults
+from src.models.last_extracted_user_status import LastExtractedUserStatus
 from src.models.user import User
 from src.service.dao.user_dao import UserDAO
 from src.utils.construct_connection_string import (
@@ -18,9 +17,12 @@ from src.utils.construct_connection_string import (
 )
 
 
-class RawSearchResultDAO:
+class LastExtractedUserStatusDAO:
     """
-    Responsible for CRUD to yahoo_search_engine.search_results
+    CRUD to yahoo_search_engine.last_extracted_user_status
+
+    - Insert into table
+    - Read the latest row for a given user
     """
 
     def __init__(
@@ -39,36 +41,30 @@ class RawSearchResultDAO:
         jitter=(-0.01, 0.01),
         backoff=2,
     )
-    async def insert_search(self, result: SearchResults) -> None:
+    async def insert_status(self, status: LastExtractedUserStatus) -> None:
         """
         TODO: Integration test this
         - Retry unit test -> does it catch the SQLAlchemyError
         """
         async with self._engine.begin() as connection:
             insert_clause: TextClause = text(
-                "INSERT into search_results("
-                "   search_id, "
+                "INSERT into last_extracted_user_status("
+                "   id, "
                 "   user_id, "
-                "   search_term, "
-                "   result, "
-                "   created_at"
+                "   last_run"
                 ") values ("
-                "   :search_id,"
-                "   :user_id,"
-                "   :search_term,"
-                "   :result,"
-                "   :created_at"
+                "   :id,"
+                "   :user_id, "
+                "   :last_run "
                 ")"
             )
             # use named-params here to prevent SQL-injection attacks
             await connection.execute(
                 insert_clause,
                 {
-                    "search_id": result.search_id,
-                    "user_id": result.user_id,
-                    "search_term": result.search_term,
-                    "result": result.result,
-                    "created_at": result.created_at,
+                    "id": status.id,
+                    "user_id": status.user_id,
+                    "last_run": status.last_run,
                 },
             )
 
@@ -79,40 +75,34 @@ class RawSearchResultDAO:
         jitter=(-0.01, 0.01),
         backoff=2,
     )
-    async def fetch_searches_for_user(
-        self, user_id: str, last_run: datetime
-    ) -> list[SearchResults]:
+    async def fetch_latest_status(self, user_id: str) -> LastExtractedUserStatus | None:
         """
         Integration test this
         """
         async with self._engine.begin() as connection:
             text_clause: TextClause = text(
-                "SELECT search_id, user_id, "
-                "search_term, result, created_at "
-                "FROM search_results "
-                "WHERE created_at >= :last_run "
-                "AND user_id = :user_id"
+                "SELECT id, user_id, last_run "
+                "FROM last_extracted_user_status "
+                "WHERE user_id = :user_id "
+                "ORDER BY last_run DESC "
+                "LIMIT 1"
             )
             cursor: CursorResult = await connection.execute(
-                text_clause,
-                {
-                    "last_run": last_run,
-                    "user_id": user_id,
-                },
+                text_clause, {"user_id": user_id}
             )
-            results: Sequence[Row] = cursor.fetchall()
-            results_row: list[SearchResults] = [
-                SearchResults.parse_obj(
-                    {
-                        "search_id": curr_row[0],
-                        "user_id": curr_row[1],
-                        "search_term": curr_row[2],
-                        "result": curr_row[3],
-                        "created_at": curr_row[4],
-                    }
-                )
-                for curr_row in results
-            ]
+            results: Row | None = cursor.fetchone()
+
+        results_row: LastExtractedUserStatus | None = (
+            LastExtractedUserStatus.parse_obj(
+                {
+                    "id": results[0],
+                    "user_id": results[1],
+                    "last_run": results[2],
+                }
+            )
+            if results
+            else None
+        )
         return results_row
 
     @retry(
@@ -122,26 +112,22 @@ class RawSearchResultDAO:
         jitter=(-0.01, 0.01),
         backoff=2,
     )
-    async def fetch_all_searches(self) -> list[SearchResults]:
+    async def fetch_all_status(self) -> list[LastExtractedUserStatus]:
         """
         Integration test this
         """
         async with self._engine.begin() as connection:
             text_clause: TextClause = text(
-                "SELECT search_id, user_id, "
-                "search_term, result, created_at "
-                "FROM search_results"
+                "SELECT id, user_id, last_run " "FROM last_extracted_user_status"
             )
             cursor: CursorResult = await connection.execute(text_clause)
             results: Sequence[Row] = cursor.fetchall()
-            results_row: list[SearchResults] = [
-                SearchResults.parse_obj(
+            results_row: list[LastExtractedUserStatus] = [
+                LastExtractedUserStatus.parse_obj(
                     {
-                        "search_id": curr_row[0],
+                        "id": curr_row[0],
                         "user_id": curr_row[1],
-                        "search_term": curr_row[2],
-                        "result": curr_row[3],
-                        "created_at": curr_row[4],
+                        "last_run": curr_row[2],
                     }
                 )
                 for curr_row in results
@@ -151,11 +137,14 @@ class RawSearchResultDAO:
 
 if __name__ == "__main__":
     user_dao: UserDAO = UserDAO()
-    search_dao: RawSearchResultDAO = RawSearchResultDAO()
-    sample_user: User = User.create_user()
-    sample_search_results: SearchResults = SearchResults.create(
-        sample_user.user_id, "how to work at macdonalds", "Dummy Search Results"
+    last_extract_user_status_dao: LastExtractedUserStatusDAO = (
+        LastExtractedUserStatusDAO()
     )
+    sample_user: User = User.create_user()
+    sample_last_extracted_user_status: LastExtractedUserStatus = (
+        LastExtractedUserStatus.create_user_status(sample_user.user_id)
+    )
+
     event_loop = asyncio.new_event_loop()
     """
     each line here runs asynchronously
@@ -163,10 +152,15 @@ if __name__ == "__main__":
     a Future object represents a computation that promises to be completed in the future
     """
     event_loop.run_until_complete(user_dao.insert_user(sample_user))
-    event_loop.run_until_complete(search_dao.insert_search(sample_search_results))
-    search_results: list[SearchResults] = event_loop.run_until_complete(
-        search_dao.fetch_all_searches()
+    event_loop.run_until_complete(
+        last_extract_user_status_dao.insert_status(sample_last_extracted_user_status)
     )
-    print(f"fetch_all_searches: {search_results}")
+    fetched_statuses: list[LastExtractedUserStatus] = event_loop.run_until_complete(
+        last_extract_user_status_dao.fetch_all_status()
+    )
+    print(f"fetched_statuses: {fetched_statuses}")
+    latest_status: LastExtractedUserStatus | None = event_loop.run_until_complete(
+        last_extract_user_status_dao.fetch_latest_status(sample_user.user_id)
+    )
     users: list[User] = event_loop.run_until_complete(user_dao.fetch_all_users())
-    print(f"fetch_all_searches: {users}")
+    print(f"users: {users}")
