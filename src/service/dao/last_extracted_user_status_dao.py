@@ -19,8 +19,12 @@ from src.utils.construct_connection_string import (
 
 class LastExtractedUserStatusDAO:
     """
-    CRUD to yahoo_search_engine.last_extracted_user_status
+    Used for:
+    - We want to track the newest searches within the last schedule so
+    that we only transform the newest data added to your raw table
+    instead of transforming all your data everytime the ETL pipeline runs.
 
+    CRUD to yahoo_search_engine.last_extracted_user_status
     - Insert into table
     - Read the latest row for a given user
     """

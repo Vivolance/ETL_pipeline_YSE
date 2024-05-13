@@ -20,7 +20,8 @@ from src.utils.construct_connection_string import (
 
 class RawSearchResultDAO:
     """
-    Responsible for CRUD to yahoo_search_engine.search_results
+    Responsible for CRUD to yahoo_search_engine.search_results.
+
     """
 
     def __init__(
@@ -41,6 +42,10 @@ class RawSearchResultDAO:
     )
     async def insert_search(self, result: SearchResults) -> None:
         """
+        Used for:
+        - Project agnostic method for testing, not used in project.
+        - Used when inserting data into integration test db table
+
         TODO: Integration test this
         - Retry unit test -> does it catch the SQLAlchemyError
         """
@@ -83,6 +88,9 @@ class RawSearchResultDAO:
         self, user_id: str, last_run: datetime
     ) -> list[SearchResults]:
         """
+        Used for:
+        - Retrieving search result for 1 user since last run of ETL pipeline
+
         Integration test this
         """
         async with self._engine.begin() as connection:
@@ -124,6 +132,10 @@ class RawSearchResultDAO:
     )
     async def fetch_all_searches(self) -> list[SearchResults]:
         """
+        Used for:
+        - Project agnostic method for testing, not used in project.
+        - Used when retrieving data into integration test db table.
+
         Integration test this
         """
         async with self._engine.begin() as connection:

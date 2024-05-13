@@ -8,7 +8,8 @@ from src.models.extracted_text_group import ExtractedTextGroup
 
 class ExtractedSearchResult(BaseModel):
     """
-    Represents a single extracted search result
+    Represents a single extracted search result.
+    This data class is implemented using pydantic BaseModel.
     """
 
     id: str

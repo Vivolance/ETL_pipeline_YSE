@@ -19,7 +19,9 @@ from src.utils.construct_connection_string import (
 
 class ExtractedSearchResultDAO:
     """
-    Responsible for CRUD to yahoo_search_engine.extracted_search_results
+    Used for:
+    - Inserting the processed result into the final table
+    - Fetch all processed results from the final table
 
     CSV COPY a dataframe into postgres
     """

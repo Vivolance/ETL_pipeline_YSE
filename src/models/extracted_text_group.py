@@ -6,6 +6,7 @@ from src.models.extracted_text import ExtractedText
 class ExtractedTextGroup:
     """
     Represents a candidate SingleSearchResult
+    This data class is implemented using @dataclass decorator
     """
 
     identifier: str

@@ -17,6 +17,12 @@ from src.utils.construct_connection_string import (
 
 class UserDAO:
     """
+    Used for:
+    - Not your main core DAO, responsible for debugging purposes
+    - We have a FK constraint for your user_id, in your last_status table
+     when we insert, update, delete a user_id data that is not inside, it will
+     throw an error.
+
     Responsible for CRUD to yahoo_search_engine.users
     """
 
