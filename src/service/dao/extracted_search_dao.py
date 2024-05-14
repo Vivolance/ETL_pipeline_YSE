@@ -42,6 +42,33 @@ class ExtractedSearchResultDAO:
         jitter=(-0.01, 0.01),
         backoff=2,
     )
+    async def insert_user(self, user: User) -> None:
+        """
+        TODO: Integration test this
+        """
+        async with self._engine.begin() as connection:
+            insert_clause: TextClause = text(
+                "INSERT into users("
+                "   user_id, "
+                "   created_at"
+                ") values ("
+                "   :user_id,"
+                "   :created_at"
+                ")"
+            )
+            # use named-params here to prevent SQL-injection attacks
+            await connection.execute(
+                insert_clause, {"user_id": user.user_id, "created_at": user.created_at}
+            )
+
+    @retry(
+        exceptions=SQLAlchemyError,
+        tries=5,
+        delay=0.01,
+        jitter=(-0.01, 0.01),
+        backoff=2,
+    )
+
     async def insert_search(self, result: ExtractedSearchResult) -> None:
         """
         TODO: Integration test this
@@ -49,20 +76,20 @@ class ExtractedSearchResultDAO:
         """
         async with self._engine.begin() as connection:
             insert_clause: TextClause = text(
-                "INSERT into extracted_search_result("
+                "INSERT into extracted_search_results("
                 "   id, "
                 "   user_id, "
                 "   url, "
                 "   date, "
                 "   body, "
-                "   created_date"
+                "   created_at"
                 ") values ("
                 "   :id,"
                 "   :user_id, "
                 "   :url, "
                 "   :date, "
                 "   :body, "
-                "   :created_date "
+                "   :created_at "
                 ")"
             )
             # use named-params here to prevent SQL-injection attacks
@@ -74,7 +101,7 @@ class ExtractedSearchResultDAO:
                     "url": result.url,
                     "date": result.date,
                     "body": result.body,
-                    "created_date": result.created_date,
+                    "created_at": result.created_at,
                 },
             )
 
@@ -95,20 +122,20 @@ class ExtractedSearchResultDAO:
         """
         async with self._engine.begin() as connection:
             insert_clause: TextClause = text(
-                "INSERT into extracted_search_result("
+                "INSERT into extracted_search_results("
                 "   id, "
                 "   user_id, "
                 "   url, "
                 "   date, "
                 "   body, "
-                "   created_date"
+                "   created_at"
                 ") values ("
                 "   :id,"
                 "   :user_id, "
                 "   :url, "
                 "   :date, "
                 "   :body, "
-                "   :created_date "
+                "   :created_at "
                 ")"
             )
             insert_params = [
@@ -118,7 +145,7 @@ class ExtractedSearchResultDAO:
                     "url": result.url,
                     "date": result.date,
                     "body": result.body,
-                    "created_date": result.created_date,
+                    "created_at": result.created_at,
                 }
                 for result in results
             ]
@@ -140,7 +167,7 @@ class ExtractedSearchResultDAO:
         async with self._engine.begin() as connection:
             text_clause: TextClause = text(
                 "SELECT id, user_id, "
-                "url, date, body, created_date"
+                "url, date, body, created_at"
                 "FROM extracted_search_results"
             )
             cursor: CursorResult = await connection.execute(text_clause)
@@ -181,3 +208,4 @@ if __name__ == "__main__":
     print(f"fetch_all_searches: {search_results}")
     users: list[User] = event_loop.run_until_complete(user_dao.fetch_all_users())
     print(f"fetch_all_searches: {users}")
+
