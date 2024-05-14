@@ -26,12 +26,15 @@ sqlalchemy = "^2.0.30"
 psycopg2-binary = "^2.9.9"
 retry = "^0.9.2"
 python-dotenv = "^1.0.1"
+asyncpg = "^0.29.0"
+greenlet = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
 black = "^24.4.2"     # accepts any latest version
 ruff = "^0.4.4"
 mypy = "^1.5.1"
 pytest = "^8.2.0"
+pytest-asyncio-cooperative = "^0.36.0"
 
 [build-system]
 requires = ["poetry-core"]
