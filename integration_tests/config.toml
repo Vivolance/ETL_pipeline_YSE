@@ -1,0 +1,6 @@
+[database]
+    user = "it_etl_user"
+    password = "it_etl_password"
+    host = "localhost"
+    port = 5432
+    database = "it_etl_yahoo_search_engine"
