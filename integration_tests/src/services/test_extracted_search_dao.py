@@ -45,22 +45,6 @@ class TestExtractedSearchResultDAO:
         async with extracted_search_dao._engine.begin() as connection:
             await connection.execute(truncate_clause)
 
-    # @pytest.mark.asyncio_cooperative
-    # async def test_insert_search(self) -> None:
-    #     await self.clear_users_table()
-    #     users: list[User] = [
-    #         User(
-    #             user_id=str(dummy_uuid),
-    #             created_at=datetime(year=2024, month=5, day=14, hour=12),
-    #         )
-    #     ]
-    #     for user in users:
-    #         await extracted_search_dao.insert_search(user)
-    #
-    #     results_row: list[User] = await extracted_search_dao.fetch_all_users()
-    #     assert results_row == users
-    #     await self.clear_user_table()
-
     @pytest.mark.asyncio_cooperative
     async def test_insert_search(self) -> None:
         await self.clear_users_table()
@@ -76,12 +60,12 @@ class TestExtractedSearchResultDAO:
 
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
-                id="dummy_id",
+                id="dummy id",
                 user_id=str(dummy_uuid),
-                url="dummy_url",
+                url="dummy url",
                 date="2024-05-30",
                 body="dummy results",
-                created_at=datetime(year=2024, month=5, day=14, hour=12)
+                created_at=datetime(year=2024, month=5, day=14, hour=13)
             )
         ]
 
@@ -92,5 +76,62 @@ class TestExtractedSearchResultDAO:
         assert results_row == extracted_search_results
         await self.clear_extracted_search_results_table()
         await self.clear_users_table()
+
+    @pytest.mark.asyncio_cooperative
+    async def test_bulk_insert(self) -> None:
+        """
+        Test Plan:
+        1) Prepare the table for IT (done by alembic, clear table)
+        2) Act (execute the bulk_insert function call to insert rows into the table
+        3) Assert that each row in the table is inserted correctly
+        4) Clear the table
+        """
+        await self.clear_users_table()
+        await self.clear_extracted_search_results_table()
+        users: list[User] = [
+            User(
+                user_id=str(dummy_uuid),
+                created_at=datetime(year=2024, month=5, day=15, hour=14)
+            )
+        ]
+
+        for user in users:
+            await extracted_search_dao.insert_user(user)
+
+        extracted_search_results: list[ExtractedSearchResult] = [
+            ExtractedSearchResult(
+                id="dummy id",
+                user_id=str(dummy_uuid),
+                url="dummy url",
+                date="2024-05-30",
+                body="dummy result",
+                created_at=datetime(year=2024, month=5, day=14, hour=13)
+            )
+        ]
+
+        for extracted_search_result in extracted_search_results:
+            await extracted_search_dao.insert_search(extracted_search_result)
+
+        results_row: list[ExtractedSearchResult] = await extracted_search_dao.fetch_all_searches()
+        assert results_row == extracted_search_results
+        await self.clear_extracted_search_results_table()
+        await self.clear_users_table()
+
+    @pytest.mark.asyncio_cooperative
+    async def test_fetch_all_searches(self) -> None:
+        await self.clear_users_table()
+        await self.clear_extracted_search_results_table()
+        users: list[User] = [
+            User(
+                user_id=str(dummy_uuid),
+                created_at=datetime(year=2024, month=5, day=15, hour =15)
+            )
+        ]
+
+        for user in users:
+            await extracted_search_dao.insert_user(user)
+
+
+
 
 
