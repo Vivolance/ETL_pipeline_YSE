@@ -68,7 +68,6 @@ class ExtractedSearchResultDAO:
         jitter=(-0.01, 0.01),
         backoff=2,
     )
-
     async def insert_search(self, result: ExtractedSearchResult) -> None:
         """
         TODO: Integration test this
@@ -165,13 +164,7 @@ class ExtractedSearchResultDAO:
         Integration test this
         """
         async with self._engine.begin() as connection:
-            """
-            Correct:
-            SELECT id, user_id, url, date, body, created_at FROM extracted_search_results
-            
-            Prev query
-            SELECT id, user_id, url, date, body, created_atFROM extracted_search_results
-            """
+
             text_clause: TextClause = text(
                 "SELECT id, user_id, "
                 "url, date, body, created_at "
@@ -199,7 +192,12 @@ if __name__ == "__main__":
     user_dao: UserDAO = UserDAO()
     search_dao: ExtractedSearchResultDAO = ExtractedSearchResultDAO()
     sample_user: User = User.create_user()
-    sample_search_results: ExtractedSearchResult = ExtractedSearchResult.create()
+    sample_search_results: ExtractedSearchResult = ExtractedSearchResult.create_search_result(
+        sample_user.user_id,
+        None,
+        None,
+        None
+    )
 
     event_loop = asyncio.new_event_loop()
     """
@@ -215,4 +213,3 @@ if __name__ == "__main__":
     print(f"fetch_all_searches: {search_results}")
     users: list[User] = event_loop.run_until_complete(user_dao.fetch_all_users())
     print(f"fetch_all_searches: {users}")
-

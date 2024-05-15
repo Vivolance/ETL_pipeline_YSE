@@ -18,13 +18,13 @@ class BS4SearchResultExtractor(SearchResultExtractor):
     def __init__(self) -> None:
         return
 
-    def extract(self, html: str) -> list[ExtractedSearchResult]:
+    def extract(self, html: str, user_id: str) -> list[ExtractedSearchResult]:
         unfiltered_group: list[ExtractedTextGroup] = bs4_recursive_extract_text(html)
         filtered_group: list[ExtractedTextGroup] = [
             group for group in unfiltered_group if group.information_count >= 2
         ]
         extracted_search_results: list[ExtractedSearchResult] = [
-            ExtractedSearchResult.from_extracted_text_group(group)
+            ExtractedSearchResult.from_extracted_text_group(user_id, group)
             for group in filtered_group
         ]
         return extracted_search_results

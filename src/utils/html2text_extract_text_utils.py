@@ -1,7 +1,9 @@
 import html2text
+
 """
 NOT IN USED, USED AS A PROTOTYPE
 """
+
 
 def html2text_extract_text(input_html: str) -> str:
     """
