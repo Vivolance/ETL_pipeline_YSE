@@ -1,6 +1,7 @@
 """
 Contains fixture to all tests
 """
+
 from typing import Any
 import toml
 

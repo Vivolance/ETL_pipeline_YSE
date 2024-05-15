@@ -28,6 +28,8 @@ retry = "^0.9.2"
 python-dotenv = "^1.0.1"
 asyncpg = "^0.29.0"
 greenlet = "^3.0.3"
+types-toml = "^0.10.8.20240310"
+types-retry = "^0.9.9.4"
 
 [tool.poetry.dev-dependencies]
 black = "^24.4.2"     # accepts any latest version
@@ -42,6 +44,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 check_untyped_defs = true
+explicit_package_bases = true
 exclude = ["venv"]
 
 [tool.ruff]
