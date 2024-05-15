@@ -165,9 +165,16 @@ class ExtractedSearchResultDAO:
         Integration test this
         """
         async with self._engine.begin() as connection:
+            """
+            Correct:
+            SELECT id, user_id, url, date, body, created_at FROM extracted_search_results
+            
+            Prev query
+            SELECT id, user_id, url, date, body, created_atFROM extracted_search_results
+            """
             text_clause: TextClause = text(
                 "SELECT id, user_id, "
-                "url, date, body, created_at"
+                "url, date, body, created_at "
                 "FROM extracted_search_results"
             )
             cursor: CursorResult = await connection.execute(text_clause)
