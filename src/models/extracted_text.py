@@ -64,6 +64,7 @@ class ExtractedText:
 
     4. Return the final transformed type ExtractedTextGroup
     """
+
     parent_tags: list[str]
     text: str
 

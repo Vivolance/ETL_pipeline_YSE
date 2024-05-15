@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 NOT IN USE, USED AS PROTOTYPES
 """
 
+
 def bs4_extract_text(input_html: str) -> str:
     """
     Extracts text from HTML

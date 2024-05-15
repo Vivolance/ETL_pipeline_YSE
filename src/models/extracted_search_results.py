@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from src.models.extracted_text_group import ExtractedTextGroup
 
@@ -11,6 +11,7 @@ class ExtractedSearchResult(BaseModel):
     Represents a single extracted search result.
     This data class is implemented using pydantic BaseModel.
     """
+
     id: str
     user_id: str
     url: str | None
