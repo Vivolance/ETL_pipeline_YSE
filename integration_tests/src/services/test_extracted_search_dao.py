@@ -11,6 +11,9 @@ from sqlalchemy import CursorResult, Row, TextClause, text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from integration_tests.conftest import integration_test_db_config
+from integration_tests.src.utils.engine import ENGINE, DUMMY_UUID
+from integration_tests.src.utils.fetch import Fetch
+from integration_tests.src.utils.insert import Insert
 from src.models.extracted_search_results import ExtractedSearchResult
 from src.models.user import User
 from src.service.dao.extracted_search_dao import ExtractedSearchResultDAO
@@ -40,110 +43,11 @@ Clear user tables
 """
 
 
-DUMMY_UUID: UUID = UUID("12345678123456781234567812345678")
-
 EXTRACTED_SEARCH_DAO: ExtractedSearchResultDAO = ExtractedSearchResultDAO(
     integration_test_db_config()
 )
 
-DB_CONFIG: dict[str, Any] = toml.load("integration_tests/config.toml")["database"]
-
-ENGINE: AsyncEngine = create_async_engine(
-    construct_sqlalchemy_url_from_db_config(DB_CONFIG, use_async_pg=True)
-)
-
-
 class TestExtractedSearchResultDAO:
-    async def fetch_users(self) -> list[User]:
-        async with ENGINE.begin() as connection:
-            text_clause: TextClause = text("SELECT user_id, created_at " "FROM users")
-            cursor: CursorResult = await connection.execute(text_clause)
-            results: Sequence[Row] = cursor.fetchall()
-            results_row: list[User] = [
-                User.parse_obj(
-                    {
-                        "user_id": curr_row[0],
-                        "created_at": curr_row[1],
-                    }
-                )
-                for curr_row in results
-            ]
-        return results_row
-
-    async def insert_user(self, user: User) -> None:
-        """
-        TODO: Integration test this
-        """
-        async with ENGINE.begin() as connection:
-            insert_clause: TextClause = text(
-                "INSERT into users("
-                "   user_id, "
-                "   created_at"
-                ") values ("
-                "   :user_id,"
-                "   :created_at"
-                ")"
-            )
-            # use named-params here to prevent SQL-injection attacks
-            await connection.execute(
-                insert_clause, {"user_id": user.user_id, "created_at": user.created_at}
-            )
-
-    async def insert_search(self, result: ExtractedSearchResult) -> None:
-        async with ENGINE.begin() as connection:
-            insert_clause: TextClause = text(
-                "INSERT into extracted_search_results("
-                "   id, "
-                "   user_id, "
-                "   url, "
-                "   date, "
-                "   body, "
-                "   created_at"
-                ") values ("
-                "   :id,"
-                "   :user_id, "
-                "   :url, "
-                "   :date, "
-                "   :body, "
-                "   :created_at "
-                ")"
-            )
-            # use named-params here to prevent SQL-injection attacks
-            await connection.execute(
-                insert_clause,
-                {
-                    "id": result.id,
-                    "user_id": result.user_id,
-                    "url": result.url,
-                    "date": result.date,
-                    "body": result.body,
-                    "created_at": result.created_at,
-                },
-            )
-
-    async def fetch_all_searches(self) -> list[ExtractedSearchResult]:
-        async with ENGINE.begin() as connection:
-            text_clause: TextClause = text(
-                "SELECT id, user_id, "
-                "url, date, body, created_at "
-                "FROM extracted_search_results"
-            )
-            cursor: CursorResult = await connection.execute(text_clause)
-            results: Sequence[Row] = cursor.fetchall()
-            results_row: list[ExtractedSearchResult] = [
-                ExtractedSearchResult.parse_obj(
-                    {
-                        "id": curr_row[0],
-                        "user_id": curr_row[1],
-                        "url": curr_row[2],
-                        "date": curr_row[3],
-                        "body": curr_row[4],
-                        "created_at": curr_row[5],
-                    }
-                )
-                for curr_row in results
-            ]
-        return results_row
 
     async def clear_users_table(self) -> None:
         """
@@ -174,7 +78,7 @@ class TestExtractedSearchResultDAO:
         ]
         for user in users:
             await EXTRACTED_SEARCH_DAO.insert_user(user)
-        results: list[User] = await self.fetch_users()
+        results: list[User] = await Fetch.fetch_users()
         assert results == users
         await self.clear_users_table()
 
@@ -189,7 +93,7 @@ class TestExtractedSearchResultDAO:
             )
         ]
         for user in users:
-            await self.insert_user(user)
+            await Insert.insert_user(user)
 
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
@@ -205,7 +109,7 @@ class TestExtractedSearchResultDAO:
         for extracted_search_result in extracted_search_results:
             await EXTRACTED_SEARCH_DAO.insert_search(extracted_search_result)
 
-        results_row: list[ExtractedSearchResult] = await self.fetch_all_searches()
+        results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
         assert results_row == extracted_search_results
         await self.clear_extracted_search_results_table()
         await self.clear_users_table()
@@ -229,7 +133,7 @@ class TestExtractedSearchResultDAO:
         ]
 
         for user in users:
-            await self.insert_user(user)
+            await Insert.insert_user(user)
 
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
@@ -245,7 +149,7 @@ class TestExtractedSearchResultDAO:
         for extracted_search_result in extracted_search_results:
             await EXTRACTED_SEARCH_DAO.insert_search(extracted_search_result)
 
-        results_row: list[ExtractedSearchResult] = await self.fetch_all_searches()
+        results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
         assert results_row == extracted_search_results
         await self.clear_extracted_search_results_table()
         await self.clear_users_table()
@@ -261,7 +165,7 @@ class TestExtractedSearchResultDAO:
             )
         ]
         for user in users:
-            await self.insert_user(user)
+            await Insert.insert_user(user)
 
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
@@ -275,7 +179,7 @@ class TestExtractedSearchResultDAO:
         ]
 
         for extracted_search_result in extracted_search_results:
-            await self.insert_search(extracted_search_result)
+            await Insert.insert_search(extracted_search_result)
 
         results_row: list[ExtractedSearchResult] = (
             await EXTRACTED_SEARCH_DAO.fetch_all_searches()
