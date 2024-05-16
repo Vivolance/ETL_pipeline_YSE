@@ -4,19 +4,15 @@ from src.models.extracted_search_results import ExtractedSearchResult
 from src.models.user import User
 from src.service.dao.user_dao import UserDAO
 
-from sqlalchemy import CursorResult, Row, TextClause, text
+from sqlalchemy import TextClause, text
 
 
-USER_DAO: UserDAO = UserDAO(
-    integration_test_db_config()
-)
+USER_DAO: UserDAO = UserDAO(integration_test_db_config())
+
 
 class Insert:
     @staticmethod
     async def insert_user(user: User) -> None:
-        """
-        TODO: Integration test this
-        """
         async with engine.begin() as connection:
             insert_clause: TextClause = text(
                 "INSERT into users("

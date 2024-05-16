@@ -192,11 +192,10 @@ if __name__ == "__main__":
     user_dao: UserDAO = UserDAO()
     search_dao: ExtractedSearchResultDAO = ExtractedSearchResultDAO()
     sample_user: User = User.create_user()
-    sample_search_results: ExtractedSearchResult = ExtractedSearchResult.create_search_result(
-        sample_user.user_id,
-        None,
-        None,
-        None
+    sample_search_results: ExtractedSearchResult = (
+        ExtractedSearchResult.create_search_result(
+            sample_user.user_id, None, None, None
+        )
     )
 
     event_loop = asyncio.new_event_loop()
