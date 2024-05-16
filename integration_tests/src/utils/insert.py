@@ -1,6 +1,7 @@
 from integration_tests.conftest import integration_test_db_config
 from integration_tests.src.utils.engine import engine
 from src.models.extracted_search_results import ExtractedSearchResult
+from src.models.search_results import SearchResults
 from src.models.user import User
 from src.service.dao.user_dao import UserDAO
 
@@ -29,7 +30,9 @@ class Insert:
             )
 
     @staticmethod
-    async def insert_search(result: ExtractedSearchResult) -> None:
+    async def insert_search_extracted_search_results(
+        result: ExtractedSearchResult,
+    ) -> None:
         async with engine.begin() as connection:
             insert_clause: TextClause = text(
                 "INSERT into extracted_search_results("
@@ -57,6 +60,36 @@ class Insert:
                     "url": result.url,
                     "date": result.date,
                     "body": result.body,
+                    "created_at": result.created_at,
+                },
+            )
+
+    @staticmethod
+    async def insert_search_search_results(result: SearchResults) -> None:
+        async with engine.begin() as connection:
+            insert_clause: TextClause = text(
+                "INSERT into search_results("
+                "   search_id, "
+                "   user_id, "
+                "   search_term, "
+                "   result, "
+                "   created_at"
+                ") values ("
+                "   :search_id,"
+                "   :user_id,"
+                "   :search_term,"
+                "   :result,"
+                "   :created_at"
+                ")"
+            )
+            # use named-params here to prevent SQL-injection attacks
+            await connection.execute(
+                insert_clause,
+                {
+                    "search_id": result.search_id,
+                    "user_id": result.user_id,
+                    "search_term": result.search_term,
+                    "result": result.result,
                     "created_at": result.created_at,
                 },
             )
