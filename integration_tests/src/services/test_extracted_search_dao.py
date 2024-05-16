@@ -81,7 +81,9 @@ class TestExtractedSearchResultDAO:
         for extracted_search_result in extracted_search_results:
             await EXTRACTED_SEARCH_DAO.insert_search(extracted_search_result)
 
-        results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
+        results_row: list[ExtractedSearchResult] = (
+            await Fetch.fetch_all_searches_from_extracted_search_results()
+        )
         assert results_row == extracted_search_results
         await ClearTables.clear_extracted_search_results_table()
         await ClearTables.clear_users_table()
@@ -121,7 +123,9 @@ class TestExtractedSearchResultDAO:
         for extracted_search_result in extracted_search_results:
             await EXTRACTED_SEARCH_DAO.insert_search(extracted_search_result)
 
-        results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
+        results_row: list[ExtractedSearchResult] = (
+            await Fetch.fetch_all_searches_from_extracted_search_results()
+        )
         assert results_row == extracted_search_results
         await ClearTables.clear_extracted_search_results_table()
         await ClearTables.clear_users_table()
@@ -151,7 +155,7 @@ class TestExtractedSearchResultDAO:
         ]
 
         for extracted_search_result in extracted_search_results:
-            await Insert.insert_search(extracted_search_result)
+            await Insert.insert_search_extracted_search_results(extracted_search_result)
 
         results_row: list[ExtractedSearchResult] = (
             await EXTRACTED_SEARCH_DAO.fetch_all_searches()
