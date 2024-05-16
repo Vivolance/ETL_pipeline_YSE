@@ -1,5 +1,5 @@
 from integration_tests.conftest import integration_test_db_config
-from integration_tests.src.utils.engine import ENGINE
+from integration_tests.src.utils.engine import engine
 from src.models.extracted_search_results import ExtractedSearchResult
 from src.models.user import User
 from src.service.dao.user_dao import UserDAO
@@ -17,7 +17,7 @@ class Insert:
         """
         TODO: Integration test this
         """
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             insert_clause: TextClause = text(
                 "INSERT into users("
                 "   user_id, "
@@ -34,7 +34,7 @@ class Insert:
 
     @staticmethod
     async def insert_search(result: ExtractedSearchResult) -> None:
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             insert_clause: TextClause = text(
                 "INSERT into extracted_search_results("
                 "   id, "

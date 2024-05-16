@@ -5,7 +5,7 @@ import pytest
 
 from integration_tests.conftest import integration_test_db_config
 from integration_tests.src.utils.clear_tables import ClearTables
-from integration_tests.src.utils.engine import DUMMY_UUID
+from integration_tests.src.utils.engine import dummy_uuid
 from integration_tests.src.utils.fetch import Fetch
 from integration_tests.src.utils.insert import Insert
 from src.models.extracted_search_results import ExtractedSearchResult
@@ -44,7 +44,7 @@ class TestExtractedSearchResultDAO:
         await ClearTables.clear_users_table()
         users: list[User] = [
             User(
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 created_at=datetime(year=2024, month=5, day=17, hour=17),
             )  # 0x123
         ]
@@ -60,7 +60,7 @@ class TestExtractedSearchResultDAO:
         await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 created_at=datetime(year=2024, month=5, day=14, hour=12),
             )
         ]
@@ -70,7 +70,7 @@ class TestExtractedSearchResultDAO:
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
                 id="dummy id",
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 url="dummy url",
                 date="2024-05-30",
                 body="dummy results",
@@ -99,7 +99,7 @@ class TestExtractedSearchResultDAO:
         await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 created_at=datetime(year=2024, month=5, day=15, hour=14),
             )
         ]
@@ -110,7 +110,7 @@ class TestExtractedSearchResultDAO:
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
                 id="dummy id",
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 url="dummy url",
                 date="2024-05-30",
                 body="dummy result",
@@ -132,7 +132,7 @@ class TestExtractedSearchResultDAO:
         await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 created_at=datetime(year=2024, month=5, day=15, hour=15),
             )
         ]
@@ -142,7 +142,7 @@ class TestExtractedSearchResultDAO:
         extracted_search_results: list[ExtractedSearchResult] = [
             ExtractedSearchResult(
                 id="dummy id",
-                user_id=str(DUMMY_UUID),
+                user_id=str(dummy_uuid),
                 url="dummy url",
                 date="2024-05-15",
                 body="dummy results",

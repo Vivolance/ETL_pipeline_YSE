@@ -1,5 +1,6 @@
-from integration_tests.src.utils.engine import ENGINE
+from integration_tests.src.utils.engine import engine
 from sqlalchemy import CursorResult, Row, TextClause, text
+
 
 class ClearTables:
 
@@ -10,7 +11,7 @@ class ClearTables:
         - Truncate users table
         """
         truncate_clause: TextClause = text("TRUNCATE TABLE users CASCADE")
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             await connection.execute(truncate_clause)
 
     @staticmethod
@@ -20,5 +21,5 @@ class ClearTables:
         - Truncate users table
         """
         truncate_clause: TextClause = text("TRUNCATE TABLE extracted_search_results")
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             await connection.execute(truncate_clause)

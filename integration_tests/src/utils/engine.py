@@ -7,10 +7,10 @@ from typing import Any
 
 from src.utils.construct_connection_string import construct_sqlalchemy_url_from_db_config
 
-DUMMY_UUID: UUID = UUID("12345678123456781234567812345678")
+dummy_uuid: UUID = UUID("12345678123456781234567812345678")
 
-DB_CONFIG: dict[str, Any] = toml.load("integration_tests/config.toml")["database"]
+db_config: dict[str, Any] = toml.load("integration_tests/config.toml")["database"]
 
-ENGINE: AsyncEngine = create_async_engine(
-    construct_sqlalchemy_url_from_db_config(DB_CONFIG, use_async_pg=True)
+engine: AsyncEngine = create_async_engine(
+    construct_sqlalchemy_url_from_db_config(db_config, use_async_pg=True)
 )

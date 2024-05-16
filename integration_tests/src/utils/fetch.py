@@ -1,4 +1,4 @@
-from integration_tests.src.utils.engine import ENGINE
+from integration_tests.src.utils.engine import engine
 from sqlalchemy import CursorResult, Row, TextClause, text
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from src.models.user import User
 class Fetch:
     @staticmethod
     async def fetch_all_searches() -> list[ExtractedSearchResult]:
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             text_clause: TextClause = text(
                 "SELECT id, user_id, "
                 "url, date, body, created_at "
@@ -35,7 +35,7 @@ class Fetch:
 
     @staticmethod
     async def fetch_users() -> list[User]:
-        async with ENGINE.begin() as connection:
+        async with engine.begin() as connection:
             text_clause: TextClause = text("SELECT user_id, created_at " "FROM users")
             cursor: CursorResult = await connection.execute(text_clause)
             results: Sequence[Row] = cursor.fetchall()
