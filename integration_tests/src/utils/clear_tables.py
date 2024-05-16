@@ -1,5 +1,5 @@
 from integration_tests.src.utils.engine import engine
-from sqlalchemy import CursorResult, Row, TextClause, text
+from sqlalchemy import TextClause, text
 
 
 class ClearTables:
