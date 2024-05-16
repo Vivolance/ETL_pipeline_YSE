@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pytest
 
-
 from integration_tests.conftest import integration_test_db_config
 from integration_tests.src.utils.clear_tables import ClearTables
 from integration_tests.src.utils.engine import dummy_uuid
@@ -36,6 +35,7 @@ Clear user tables
 EXTRACTED_SEARCH_DAO: ExtractedSearchResultDAO = ExtractedSearchResultDAO(
     integration_test_db_config()
 )
+
 
 class TestExtractedSearchResultDAO:
 
