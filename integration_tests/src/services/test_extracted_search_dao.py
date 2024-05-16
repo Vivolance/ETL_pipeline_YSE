@@ -1,26 +1,16 @@
 from datetime import datetime
-from uuid import UUID
-
-from collections.abc import Sequence
 
 import pytest
-import toml
-from typing import Any
 
-from sqlalchemy import CursorResult, Row, TextClause, text
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from integration_tests.conftest import integration_test_db_config
-from integration_tests.src.utils.engine import ENGINE, DUMMY_UUID
+from integration_tests.src.utils.clear_tables import ClearTables
+from integration_tests.src.utils.engine import DUMMY_UUID
 from integration_tests.src.utils.fetch import Fetch
 from integration_tests.src.utils.insert import Insert
 from src.models.extracted_search_results import ExtractedSearchResult
 from src.models.user import User
 from src.service.dao.extracted_search_dao import ExtractedSearchResultDAO
-
-from src.utils.construct_connection_string import (
-    construct_sqlalchemy_url_from_db_config,
-)
 
 
 """
@@ -49,27 +39,9 @@ EXTRACTED_SEARCH_DAO: ExtractedSearchResultDAO = ExtractedSearchResultDAO(
 
 class TestExtractedSearchResultDAO:
 
-    async def clear_users_table(self) -> None:
-        """
-        Runs at the start of every integration test
-        - Truncate users table
-        """
-        truncate_clause: TextClause = text("TRUNCATE TABLE users CASCADE")
-        async with ENGINE.begin() as connection:
-            await connection.execute(truncate_clause)
-
-    async def clear_extracted_search_results_table(self) -> None:
-        """
-        Runs at the start of every integration test
-        - Truncate users table
-        """
-        truncate_clause: TextClause = text("TRUNCATE TABLE extracted_search_results")
-        async with ENGINE.begin() as connection:
-            await connection.execute(truncate_clause)
-
     @pytest.mark.asyncio_cooperative
     async def test_insert_users(self) -> None:
-        await self.clear_users_table()
+        await ClearTables.clear_users_table()
         users: list[User] = [
             User(
                 user_id=str(DUMMY_UUID),
@@ -80,12 +52,12 @@ class TestExtractedSearchResultDAO:
             await EXTRACTED_SEARCH_DAO.insert_user(user)
         results: list[User] = await Fetch.fetch_users()
         assert results == users
-        await self.clear_users_table()
+        await ClearTables.clear_users_table()
 
     @pytest.mark.asyncio_cooperative
     async def test_insert_search(self) -> None:
-        await self.clear_users_table()
-        await self.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
                 user_id=str(DUMMY_UUID),
@@ -111,8 +83,8 @@ class TestExtractedSearchResultDAO:
 
         results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
         assert results_row == extracted_search_results
-        await self.clear_extracted_search_results_table()
-        await self.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()
 
     @pytest.mark.asyncio_cooperative
     async def test_bulk_insert(self) -> None:
@@ -123,8 +95,8 @@ class TestExtractedSearchResultDAO:
         3) Assert that each row in the table is inserted correctly
         4) Clear the table
         """
-        await self.clear_users_table()
-        await self.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
                 user_id=str(DUMMY_UUID),
@@ -151,13 +123,13 @@ class TestExtractedSearchResultDAO:
 
         results_row: list[ExtractedSearchResult] = await Fetch.fetch_all_searches()
         assert results_row == extracted_search_results
-        await self.clear_extracted_search_results_table()
-        await self.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()
 
     @pytest.mark.asyncio_cooperative
     async def test_fetch_all_searches(self) -> None:
-        await self.clear_users_table()
-        await self.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
         users: list[User] = [
             User(
                 user_id=str(DUMMY_UUID),
@@ -185,5 +157,5 @@ class TestExtractedSearchResultDAO:
             await EXTRACTED_SEARCH_DAO.fetch_all_searches()
         )
         assert results_row == extracted_search_results
-        await self.clear_extracted_search_results_table()
-        await self.clear_users_table()
+        await ClearTables.clear_extracted_search_results_table()
+        await ClearTables.clear_users_table()

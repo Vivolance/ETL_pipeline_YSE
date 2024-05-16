@@ -8,7 +8,8 @@ from src.models.user import User
 
 
 class Fetch:
-    async def fetch_all_searches(self) -> list[ExtractedSearchResult]:
+    @staticmethod
+    async def fetch_all_searches() -> list[ExtractedSearchResult]:
         async with ENGINE.begin() as connection:
             text_clause: TextClause = text(
                 "SELECT id, user_id, "
@@ -32,8 +33,8 @@ class Fetch:
             ]
         return results_row
 
-
-    async def fetch_users(self) -> list[User]:
+    @staticmethod
+    async def fetch_users() -> list[User]:
         async with ENGINE.begin() as connection:
             text_clause: TextClause = text("SELECT user_id, created_at " "FROM users")
             cursor: CursorResult = await connection.execute(text_clause)

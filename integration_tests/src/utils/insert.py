@@ -12,7 +12,8 @@ USER_DAO: UserDAO = UserDAO(
 )
 
 class Insert:
-    async def insert_user(self, user: User) -> None:
+    @staticmethod
+    async def insert_user(user: User) -> None:
         """
         TODO: Integration test this
         """
@@ -31,7 +32,8 @@ class Insert:
                 insert_clause, {"user_id": user.user_id, "created_at": user.created_at}
             )
 
-    async def insert_search(self, result: ExtractedSearchResult) -> None:
+    @staticmethod
+    async def insert_search(result: ExtractedSearchResult) -> None:
         async with ENGINE.begin() as connection:
             insert_clause: TextClause = text(
                 "INSERT into extracted_search_results("
