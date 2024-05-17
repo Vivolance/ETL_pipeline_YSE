@@ -12,8 +12,9 @@ from src.models.user import User
 from src.service.dao.last_extracted_user_status_dao import LastExtractedUserStatusDAO
 
 
-LAST_EXTRACTED_USER_STATUS_DAO: LastExtractedUserStatusDAO \
-    = LastExtractedUserStatusDAO(integration_test_db_config())
+LAST_EXTRACTED_USER_STATUS_DAO: LastExtractedUserStatusDAO = LastExtractedUserStatusDAO(
+    integration_test_db_config()
+)
 
 
 class TestLastExtractedUserDAO:
@@ -90,6 +91,3 @@ class TestLastExtractedUserDAO:
         ]
         for user in users:
             await Insert.insert_user(user)
-
-
-
