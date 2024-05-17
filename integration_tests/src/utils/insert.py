@@ -1,6 +1,7 @@
 from integration_tests.conftest import integration_test_db_config
 from integration_tests.src.utils.engine import engine
 from src.models.extracted_search_results import ExtractedSearchResult
+from src.models.last_extracted_user_status import LastExtractedUserStatus
 from src.models.search_results import SearchResults
 from src.models.user import User
 from src.service.dao.user_dao import UserDAO
@@ -91,5 +92,29 @@ class Insert:
                     "search_term": result.search_term,
                     "result": result.result,
                     "created_at": result.created_at,
+                },
+            )
+
+    @staticmethod
+    async def insert_status(status: LastExtractedUserStatus) -> None:
+        async with engine.begin() as connection:
+            insert_clause: TextClause = text(
+                "INSERT into last_extracted_user_status("
+                "   id, "
+                "   user_id, "
+                "   last_run "
+                ") values ("
+                "   :id, "
+                "   :user_id, "
+                "   :last_run "
+                ")"
+            )
+            # use named-params here to prevent SQL-injection attacks
+            await connection.execute(
+                insert_clause,
+                {
+                    "id": status.id,
+                    "user_id": status.user_id,
+                    "last_run": status.last_run,
                 },
             )

@@ -1,9 +1,11 @@
+
 from integration_tests.src.utils.engine import engine
 from sqlalchemy import CursorResult, Row, TextClause, text
 
 from collections.abc import Sequence
 
 from src.models.extracted_search_results import ExtractedSearchResult
+from src.models.last_extracted_user_status import LastExtractedUserStatus
 from src.models.search_results import SearchResults
 from src.models.user import User
 
@@ -71,6 +73,28 @@ class Fetch:
                     {
                         "user_id": curr_row[0],
                         "created_at": curr_row[1],
+                    }
+                )
+                for curr_row in results
+            ]
+        return results_row
+
+    @staticmethod
+    async def fetch_all_status_from_last_extracted_user_status() -> (
+        list[LastExtractedUserStatus]
+    ):
+        async with engine.begin() as connection:
+            text_clause: TextClause = text(
+                "SELECT id, user_id, last_run " "FROM last_extracted_user_status"
+            )
+            cursor: CursorResult = await connection.execute(text_clause)
+            results: Sequence[Row] = cursor.fetchall()
+            results_row: list[LastExtractedUserStatus] = [
+                LastExtractedUserStatus.parse_obj(
+                    {
+                        "id": curr_row[0],
+                        "user_id": curr_row[1],
+                        "last_run": curr_row[2],
                     }
                 )
                 for curr_row in results
