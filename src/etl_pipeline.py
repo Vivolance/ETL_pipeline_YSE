@@ -1,10 +1,10 @@
- from datetime import datetime
+import asyncio
+from datetime import datetime
 
 from src.models.extracted_search_results import ExtractedSearchResult
 from src.models.last_extracted_user_status import LastExtractedUserStatus
 from src.models.search_results import SearchResults
 from src.models.user import User
-from src.service.dao import user_dao, raw_search_dao
 from src.service.dao.extracted_search_dao import ExtractedSearchResultDAO
 from src.service.dao.last_extracted_user_status_dao import LastExtractedUserStatusDAO
 from src.service.dao.raw_search_dao import RawSearchResultDAO
@@ -23,26 +23,37 @@ class ETLPipeline:
         extracted_search_result_dao: ExtractedSearchResultDAO,
     ) -> None:
         self._raw_search_result_dao: RawSearchResultDAO = raw_search_result_dao
-        self._last_extracted_user_dao: LastExtractedUserStatusDAO = last_extracted_user_dao
+        self._last_extracted_user_dao: LastExtractedUserStatusDAO = (
+            last_extracted_user_dao
+        )
         self._user_dao: UserDAO = user_dao
         self._result_extractor: SearchResultExtractor = result_extractor
         self._extracted_search_result_dao: ExtractedSearchResultDAO = (
             extracted_search_result_dao
         )
 
-    async def stage_one(self) -> list[SearchResults]:
+    async def stage_one(self) -> tuple[list[SearchResults], list[User]]:
         all_users: list[User] = await self._user_dao.fetch_all_users()
-        last_run_status: LastExtractedUserStatus | None = await self._last_extracted_user_dao.fetch_latest_status()
-        last_run: datetime = last_run_status.last_run if last_run_status else datetime(1970,1,1)
         all_raw_searches_since_last_run: list[SearchResults] = []
         for user in all_users:
+            last_run_status: LastExtractedUserStatus | None = (
+                await self._last_extracted_user_dao.fetch_latest_status(user.user_id)
+            )
+            last_run: datetime = (
+                last_run_status.last_run if last_run_status else datetime(1970, 1, 1)
+            )
             user_str: str = user.user_id
-            raw_searches_since_last_run: list[SearchResults] = \
-                await self._raw_search_result_dao.fetch_searches_for_user(user_str, last_run)
+            raw_searches_since_last_run: list[SearchResults] = (
+                await self._raw_search_result_dao.fetch_searches_for_user(
+                    user_str, last_run
+                )
+            )
             all_raw_searches_since_last_run.extend(raw_searches_since_last_run)
-        return all_raw_searches_since_last_run
+        return all_raw_searches_since_last_run, all_users
 
-    async def stage_two(self, pre_transformed_results: list[SearchResults]) -> list[ExtractedSearchResult]:
+    async def stage_two(
+        self, pre_transformed_results: list[SearchResults]
+    ) -> list[ExtractedSearchResult]:
         """
         1) Loop through each list[SearchResults] and check if it is empty. Specifically the result: str attribute.
         2) if pre_transformed_results.result is None:
@@ -58,17 +69,41 @@ class ETLPipeline:
             if pre_transformed_result.result is None:
                 continue
             else:
-                transformed_results: list[ExtractedSearchResult] = BS4SearchResultExtractor.extract(
-                    pre_transformed_result.result, pre_transformed_result.user_id)
+                transformed_results: list[ExtractedSearchResult] = (
+                    self._result_extractor.extract(
+                        pre_transformed_result.result, pre_transformed_result.user_id
+                    )
+                )
                 all_transformed_results.extend(transformed_results)
         return all_transformed_results
 
-    async def stage_three(self, transformed_results: list[ExtractedSearchResult]) -> None:
+    async def stage_three(
+        self, transformed_results: list[ExtractedSearchResult], all_users: list[User]
+    ) -> None:
         """
-        1)
+        1) Postgres recommended bulk insert record is 10,000. Batch the transformed_results into batches of 10,000
+        2) Update last_extracted_user_status
+            - Create a last_extracted_user_status: LastExtractedUserStatus = self._last_extracted_user_dao.create_user_status(all_users)
+            - Convert all_users: list[User into list[LastExtractedUserStatus]
+            - Bulk insert list[ExtractedUserStatus] in batches of 10,000 into last_extracted_user_status table
         """
+        batch_size: int = 10000
+        for i in range(0, len(transformed_results), batch_size):
+            current_batch: list[ExtractedSearchResult] = transformed_results[
+                i : i + batch_size
+            ]
+            await self._extracted_search_result_dao.bulk_insert(current_batch)
 
+        all_user_status: list[LastExtractedUserStatus] = [
+            LastExtractedUserStatus.create_user_status(user.user_id)
+            for user in all_users
+        ]
 
+        for i in range(0, len(all_user_status), batch_size):
+            current_user_batch: list[LastExtractedUserStatus] = all_user_status[
+                i : i + batch_size
+            ]
+            await self._last_extracted_user_dao.bulk_insert_status(current_user_batch)
 
     async def run(self) -> None:
         """
@@ -96,8 +131,28 @@ class ETLPipeline:
             extracted_search_results table
             2) Update the last_extracted_user_status
         """
-
+        raw_results: list[SearchResults]
+        users: list[User]
+        raw_results, users = await self.stage_one()
+        transformed_results: list[ExtractedSearchResult] = await self.stage_two(
+            raw_results
+        )
+        await self.stage_three(transformed_results, users)
 
 
 if __name__ == "__main__":
-    pass
+    raw_search_dao: RawSearchResultDAO = RawSearchResultDAO()
+    last_extracted_user_dao: LastExtractedUserStatusDAO = LastExtractedUserStatusDAO()
+    user_dao: UserDAO = UserDAO()
+    result_extractor: BS4SearchResultExtractor = BS4SearchResultExtractor()
+    extracted_search_result_dao: ExtractedSearchResultDAO = ExtractedSearchResultDAO()
+
+    etl_pipeline: ETLPipeline = ETLPipeline(
+        raw_search_dao,
+        last_extracted_user_dao,
+        user_dao,
+        result_extractor,
+        extracted_search_result_dao,
+    )
+    event_loop = asyncio.new_event_loop()
+    event_loop.run_until_complete(etl_pipeline.run())
