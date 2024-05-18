@@ -1,4 +1,3 @@
-
 from integration_tests.src.utils.engine import engine
 from sqlalchemy import CursorResult, Row, TextClause, text
 

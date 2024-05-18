@@ -128,7 +128,8 @@ class TestRawSearchResult:
         for search_result in search_results:
             await Insert.insert_search_search_results(search_result)
 
-        expected_search_results: list[SearchResults] = [SearchResults(
+        expected_search_results: list[SearchResults] = [
+            SearchResults(
                 search_id="dummy id 3",
                 user_id=str(dummy_uuid_2),
                 search_term="dummy search term",
