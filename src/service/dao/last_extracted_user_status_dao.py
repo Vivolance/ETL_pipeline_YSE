@@ -72,6 +72,36 @@ class LastExtractedUserStatusDAO:
                 },
             )
 
+    async def bulk_insert_status(self, statuses: list[LastExtractedUserStatus]) -> None:
+        """
+        TODO: Integration test this
+        - Retry unit test -> does it catch the SQLAlchemyError
+        """
+        async with self._engine.begin() as connection:
+            insert_clause: TextClause = text(
+                "INSERT into last_extracted_user_status("
+                "   id, "
+                "   user_id, "
+                "   last_run "
+                ") values ("
+                "   :id, "
+                "   :user_id, "
+                "   :last_run "
+                ")"
+            )
+            # use named-params here to prevent SQL-injection attacks
+            await connection.execute(
+                insert_clause,
+                [
+                    {
+                        "id": status.id,
+                        "user_id": status.user_id,
+                        "last_run": status.last_run,
+                    }
+                    for status in statuses
+                ],
+            )
+
     @retry(
         exceptions=SQLAlchemyError,
         tries=5,
