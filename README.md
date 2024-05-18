@@ -47,7 +47,7 @@ poetry install
 ## Running the ETL pipeline
 
 ```commandline
-python src/etl_pipeline.py
+PYTHONPATH-. python3 src/etl_pipeline.py
 ```
 
 This runs the ETL pipeline, to ingest all raw documents in `yahoo_search_engine.search_results`
