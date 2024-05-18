@@ -117,7 +117,7 @@ class TestRawSearchResult:
                 created_at=datetime(year=2024, month=5, day=15, hour=16),
             ),
             SearchResults(
-                search_id="dummy id",
+                search_id="dummy id 3",
                 user_id=str(dummy_uuid_2),
                 search_term="dummy search term",
                 result="dummy results",
@@ -128,9 +128,18 @@ class TestRawSearchResult:
         for search_result in search_results:
             await Insert.insert_search_search_results(search_result)
 
+        expected_search_results: list[SearchResults] = [SearchResults(
+                search_id="dummy id 3",
+                user_id=str(dummy_uuid_2),
+                search_term="dummy search term",
+                result="dummy results",
+                created_at=datetime(year=2024, month=5, day=15, hour=16),
+            ),
+        ]
+
         results_row: list[SearchResults] = await RAW_SEARCH_DAO.fetch_searches_for_user(
             str(dummy_uuid_2), datetime(year=2024, month=5, day=15, hour=16)
         )
-        assert results_row == search_results
+        assert results_row == expected_search_results
         await ClearTables.clear_search_results_table()
         await ClearTables.clear_users_table()
