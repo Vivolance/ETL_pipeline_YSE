@@ -1,3 +1,5 @@
+![image](https://github.com/Vivolance/ETL_pipeline_YSE/assets/99338366/bbd22e5f-e793-48a0-b786-bf2fc414bd3c)
+
 # ETL pipeline for yahoo_search_engine
 
 ## Brief
