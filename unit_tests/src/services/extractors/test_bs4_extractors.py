@@ -15,6 +15,14 @@ body, date.
 2) Filter those result groups with >= 2 identifiers with its text present.
 3) Converting from list[ExtractedTextGroup] to list[ExtractedSearchResult] ->
 the data structure which we want to insert into our table
+
+Test Cases:
+1) Multiple Good Search Results
+2) Multiple <2 identifier results
+
+Expected:
+1) Returns the link, url, body as a ExtractedSearchResult object
+2) Returns None
 """
 
 
@@ -76,7 +84,7 @@ def extractor():
 def test_extract(
         extractor,
         html,
-        expected_search_results: list[ExtractedSearchResult]
+        expected_search_results: list[ExtractedSearchResult] | None
 ) -> None:
     # Call the extract method with the given HTML content
     results = extractor.extract(html, "dummy_user_id")
