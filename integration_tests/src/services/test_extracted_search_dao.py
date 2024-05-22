@@ -13,7 +13,7 @@ from src.service.dao.extracted_search_dao import ExtractedSearchResultDAO
 
 
 """
-Steps to create integration test for insert_search method
+Steps to create integration test_etl_pipeline.py for insert_search method
 Pre: Create a new database used for integration testing
 1) Prepare the state for testing by cleaning up the table in the db
 2) Act -> Executing the main function to run the code
@@ -25,7 +25,7 @@ Pre: Create a new database used for integration testing
 The constructor is to cache attributes that are used throughout the object
 
 Im missing insert_user IT. 
-Plan: Create a fetch_user method in the integration test folder. Clear user table
+Plan: Create a fetch_user method in the integration test_etl_pipeline.py folder. Clear user table
 Act: Call the extracted_search_dao.insert_user method to insert dummy users into the user table
 Asset: Use self.fetch_all_users to fetch the inserted rows and assert it
 Clear user tables
