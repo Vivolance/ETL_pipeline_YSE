@@ -18,6 +18,7 @@ def bs4_recursive_extract_text(html_content: str) -> list[ExtractedTextGroup]:
     current_group: ExtractedTextGroup | None = None
     all_groups: list[ExtractedTextGroup] = []
     for current_extracted_text in extracted_text:
+        # if the tag is not even "0-9_li" continue
         if not current_extracted_text.is_search_result:
             continue
         # Tags each extracted text to categorize it
@@ -30,6 +31,7 @@ def bs4_recursive_extract_text(html_content: str) -> list[ExtractedTextGroup]:
             current_identifier = identifier
         # categorizes the extracted text into different parts of the search result,
         # such as the date, URL, or body text.
+        # QUESTION THIS
         if (
             current_extracted_text.classification == TextClassification.date
             and current_group
