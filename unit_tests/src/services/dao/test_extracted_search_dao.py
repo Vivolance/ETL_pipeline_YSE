@@ -13,6 +13,32 @@ from src.service.dao.extracted_search_dao import ExtractedSearchResultDAO
 # Mocking toml.load to provide a fake config
 mock_db_config = {"database": {"user": "test", "password": "test", "host": "localhost", "port": 5432, "dbname": "test_db"}}
 
+"""
+
+Response model using union keywords
+
+start up function load data to check for the connection before we receive the calls start up.
+
+"Execute docker image"
+
+
+product - !I services
+1) ticketing customers to get before tickets are opened using the ai service that reads the statement in the ticket and scan through the solution to rovide to
+the customer even ebfore tickets are opened. to group similar tickets issues
+
+tech stack:
+python
+apache spark
+SQL postgres, elastic search S3.
+tensorflow pytorch
+Service FastAPI kubernetes docker
+Task distribution in demographic location
+
+
+Singapore: 
+
+
+"""
 
 class TestExtractedSearchResultDAO(unittest.TestCase):
 
