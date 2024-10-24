@@ -60,12 +60,6 @@ This runs the ETL pipeline, to ingest all raw documents in `yahoo_search_engine.
 
 ## Scheduling the ETL script to run
 
-TODO: We use Jenkins as a scheduling server, to run the script every 5 minutes
-- To do this realtime, we can use kafka
+TODO: To do this realtime, we can use kafka
+- Visit https://github.com/Vivolance/rt-etl-yahoo-search-engine
 
-We will tackle this in another project
-
-## TODO:
-- [ ] Unit test extractor
-- [ ] Integration test DAO
-- [ ] Setup local jenkins scheduler server to run the script at a 5 minute schedule
