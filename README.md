@@ -62,4 +62,3 @@ This runs the ETL pipeline, to ingest all raw documents in `yahoo_search_engine.
 
 TODO: To do this realtime, we can use kafka
 - Visit https://github.com/Vivolance/rt-etl-yahoo-search-engine
-
